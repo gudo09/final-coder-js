@@ -1,0 +1,24 @@
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
+
+
+h1,h2{
+  @apply text-red-500 
+  text-xl
+bg-stone-900
+  font-serif;
+}
+
+h2 {
+  @apply text-right;
+}
+
+button {
+  @apply font-bold py-2 px-4 rounded bg-blue-500 text-white;
+  &:hover {
+    @apply bg-blue-800;
+  }
+}
+
+

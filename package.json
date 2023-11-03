@@ -1,0 +1,18 @@
+{
+  "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "cssnano": "^6.0.1",
+    "postcss": "^8.4.31",
+    "postcss-cli": "^10.1.0",
+    "postcss-import": "^15.1.0",
+    "postcss-nested": "^6.0.1",
+    "postcss-preset-env": "^9.3.0",
+    "tailwindcss": "^3.3.5"
+  },
+  "scripts": {
+    "dev": "npm run watch:tw",
+    "watch": "npm-run-all -p watch:*",
+    "watch:tw": "postcss ./css/tailwind.css -o ./css/style.css -w",
+    "watch:sass": "sass --watch ./scss/style.scss ./css/style.css"
+  }
+}
