@@ -3,16 +3,139 @@
 @import "tailwindcss/utilities";
 
 
-h1,h2{
-  @apply text-red-500 
-  text-xl
-bg-stone-900
-  font-serif;
+body{
+  @apply bg-red-300;
 }
 
-h2 {
-  @apply text-right;
+.pokedex-container{
+  @apply flex justify-center;
+  .pokedex{
+    @apply grid grid-cols-[repeat(auto-fit,_minmax(24rem,_1fr))]
+    gap-6 
+    justify-items-center
+    w-11/12;
+  }
 }
+
+.mensaje-sin-resultados{
+  @apply text-center text-white font-extrabold text-xl
+  shadow-black drop-shadow-lg
+  py-6 mb-8 
+  bg-red-500;
+}
+
+.card-pokemon{
+  @apply flex flex-col
+  justify-between
+  text-lg text-white
+  p-6 h-[50rem] w-[25rem]
+  bg-red-700
+  rounded
+  shadow-lg shadow-black;
+
+  &-superior {
+    @apply flex justify-between;
+
+    .id-pokemon{
+      @apply font-extrabold text-2xl drop-shadow-lg;
+    }
+
+    .boton-favorito{
+      @apply bg-white aspect-square w-12 p-2 rounded-full justify-self-end;
+    }
+  }
+
+  &-media{
+    .nombre-pokemon{
+      @apply font-extrabold text-center text-3xl py-2;
+    }
+
+    .fondo-pokebola{
+      @apply flex justify-center bg-[url('../assets/images/pokeball.png')] bg-no-repeat bg-center bg-cover rounded-full aspect-square shadow-2xl mx-16 my-8 shadow-red-950 border-gray-900 border-4;
+    
+      img-pokemon{
+        @apply scale-[1.8] aspect-square my-7 p-2 drop-shadow-lg;
+      }
+    }
+
+    .tipos-container{
+      @apply flex gap-x-2 mt-4 justify-center;
+      
+      .tipo-pokemon{
+        @apply rounded-full py-0.5 px-2 w-28 border-4 border-[rgba(27,_23,_23,_50%)];
+  
+        &-texto{
+          @apply text-center text-gray-100 align-middle font-extrabold text-base [text-shadow:_2px_1px_0_rgb(0_0_0_/_50%)];
+        }
+  
+        &-bug{@apply bg-[#AFBA42];}
+        &-dark{@apply bg-[#72564A];}
+        &-dragon{@apply bg-[#6366AD];}
+        &-electric{@apply bg-[#F7CD55];}
+        &-fairy{@apply bg-[#DAB0D4];}
+        &-fighting{@apply bg-[#AE5B4B];}
+        &-fire{@apply bg-[#E95436];}
+        &-flying{@apply bg-[#A4C7ED];}
+        &-ghost{@apply bg-[#6A476F];}
+        &-grass{@apply bg-[#8DC266];}
+        &-ground{@apply bg-[#CFB262];}
+        &-ice{@apply bg-[#93D5F5];}
+        &-normal{@apply bg-[#B8B9AB];}
+        &-poison{@apply bg-[#A15B97];}
+        &-psychic{@apply bg-[#EC6391];}
+        &-rock{@apply bg-[#B7A86D];}
+        &-steel{@apply bg-[#A4A3B3];}
+        &-water{@apply bg-[#578AC9];}
+      }
+    }
+
+    .habilidades-container{
+      @apply pt-4;
+      
+      li{
+        @apply flex flex-row gap-x-2 pt-2;
+
+        label{
+          @apply font-bold drop-shadow-lg;
+        }
+      }
+    }
+
+  }
+
+  &-inferior{
+    ul{
+      h3{
+        @apply font-bold text-center underline;
+      }
+  
+      li{
+        @apply flex gap-x-2 justify-between;
+        label{
+          @apply font-bold drop-shadow-lg;
+        }
+  
+        p{
+  
+        }
+      }
+    }
+  }
+}
+
+
+.form-buscar{
+  @apply w-3/12 bg-red-700 p-4 border-solid grid grid-cols-4 gap-y-4;
+  
+  label{
+    @apply text-white font-bold col-span-2;
+  }
+
+  input{
+    @apply px-2 py-1 col-span-2 rounded-md;
+  }
+}
+
 
 button {
   @apply font-bold py-2 px-4 rounded bg-blue-500 text-white;
