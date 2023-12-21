@@ -2,10 +2,26 @@
 import {habilidadesEN_ES} from "./habilidades.js"
 import {pokedexJS} from "./pokedex.js"
 
+//--------------------------- DECLARO LA URL DE LA POKEAPI DE MANERA GLOBAL
+const url = "https://pokeapi.co/api/v2";
+
 let pokedexCompleta = [];
 let listaFavoritos = [];
 
-conectarLocalStorage();
+
+
+start();
+async function start () {
+  await conectarLocalStorage();
+
+  iniciarPokedex();
+
+  formularioBuscar();
+
+  maquetarPaginacion(pokedexCompleta);
+
+}
+
 
 /*
   FALTA IMPLEMENTAR:
@@ -52,30 +68,32 @@ let pokedexCompleta = [
 console.log(pokedexCompleta)
 */
 
-refrescarPokedex(pokedexCompleta);
+
 
 //MAQUETO LA BARRA DE HERRAMIENTAS PARA BUSCAR
 const divTools = document.querySelector('#tools');
 divTools.setAttribute('class', 'py-4 mx-8 flex flex-col');
 
-formularioBuscar();
 
 
+async function conectarLocalStorage(){
+  const apiResponse = await getPokemonQuery("?limit=100000&offset=0");
 
-
-function conectarLocalStorage(){
-  if (localStorage.getItem( 'pokedexCompleta' ) === JSON.stringify(pokedexJS) && localStorage.getItem( 'pokedexCompleta' ) ) {
+  if (localStorage.getItem( 'pokedexCompleta' ) === JSON.stringify(apiResponse) && localStorage.getItem( 'pokedexCompleta' ) ) {
     pokedexCompleta = JSON.parse( localStorage.getItem('pokedexCompleta' ));
   }else{
     localStorage.removeItem('pokedexCompleta');
-    pokedexCompleta = pokedexJS;
+    pokedexCompleta = apiResponse;
     localStorage.setItem( 'pokedexCompleta', JSON.stringify(pokedexCompleta ));
   }
 
 
   if (localStorage.getItem('listaFavoritos') !== null) {
     listaFavoritos = JSON.parse(localStorage.getItem('listaFavoritos'));
-    console.log(listaFavoritos);
+    //console.log(listaFavoritos);
+  } else {
+    localStorage.setItem( 'listaFavoritos', JSON.stringify(listaFavoritos ));
+
   }
 }
 
@@ -89,98 +107,88 @@ function animacionCards(){
   });
 }
 
-function capitalize(cadena) {
-  return cadena.charAt(0).toUpperCase() + cadena.slice(1);
+async function iniciarPokedex(){
+  const pokedexInicial = await getPokemonQuery("?offset=0&limit=20");
+  await refrescarPokedex(pokedexInicial);
+
 }
 
-function refrescarPokedex(listadoPokedex){
-  const pokedexHTML = document.querySelector('#pokedex');
-  pokedexHTML.innerHTML = "";
+async function cargando(){
+  const $modal = document.querySelector('#modal');
+  const $loadSpinner = `<div class="inline-block h-20 w-20 animate-spin rounded-full border-8 border-solid border-red-500 border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite] "role="status"> </div>`;
+  $modal.classList.remove('hidden');
+  $modal.innerHTML = $loadSpinner;
+}
 
-  for (const pokemon of listadoPokedex) {
-    //INICIALIZO LA CARD DEL POKEMON
-    const card = document.createElement('li');
-    card.setAttribute("class","card-pokemon");
-  
-    //PARTE SUPERIOR DE LA CARD DEL POKEMON
-    const cardSuperior = document.createElement('div');
-    cardSuperior.setAttribute("class","card-pokemon-superior");
-  
-    cardSuperior.appendChild(maquetarIDPokedex(pokemon));
-    cardSuperior.appendChild(maquetarFavoritoCard(pokemon));
-    card.appendChild(cardSuperior);
+async function ocultarCargando(){
+  const $modal = document.querySelector('#modal');
+  $modal.classList.add('hidden');
+}
 
-    //PARTE MEDIA DE LA CARD DEL POKEMON
-    const cardMedia = document.createElement('div');
-    cardMedia.appendChild(maquetarImagenPokedex(pokemon));
-    cardMedia.appendChild(maquetarNombrePokedex(pokemon));
-    cardMedia.appendChild(maquetarTiposPokedex(pokemon));
-    cardMedia.appendChild(maquetarHabilidadesPokedex(pokemon));
-    cardMedia.setAttribute("class","card-pokemon-media");
-    card.appendChild(cardMedia);
-  
-  
-    //PARTE INFERIOR DE LA CARD DEL POKEMON
-    const cardInferior = document.createElement('div');
-    cardInferior.setAttribute("class","card-pokemon-inferior");
-    cardInferior.appendChild(maquetarEstadisticasPokedex(pokemon));
-  
+async function refrescarPokedex(listado){
+  try {
+    cargando();
+    let pokedexHTML = document.querySelector('#pokedex');
+    pokedexHTML.innerHTML = "";
     
-    card.appendChild(cardInferior);
-  
-  
-    //UNO LAS PARTES SUPERIOR E INFERIOR DE LA CARD DEL POKEMON
-    pokedexHTML.appendChild(card);
-    animacionCards();
-  }
-};
+    
+    for (const pokemon of listado) {
+      const card = await crearCard(pokemon);
+      pokedexHTML.appendChild(card);
+    }
+    ocultarCargando();
+  } catch (error) {
 
-function indiceDeHabilidad (arreglo, i) {
-    return arreglo.indexOf(i) + 1;
+    console.log('Error al generar la card');
+    //console.error(error);
+
+  }
+
 }
 
-function getTipos(tipo) {
-  //-----------------------FALTA PURGAR (VOY A USAR LOS COLORES DESDE EL CSS DE TAILWIND)--------------------
-  switch (tipo) {
-    case "bug":
-      return {tipo:"bicho", color: "AFBA42"}
-    case "dark":
-      return {tipo: "siniestro", color: "72564A"}
-    case "dragon":
-      return {tipo: "dragón", color: "6366AD"}
-    case "electric":
-      return {tipo: "eléctrico", color: "F7CD55"}
-    case "fairy":
-      return {tipo: "hada", color: "DAB0D4"}
-    case "fighting":
-      return {tipo: "lucha", color: "AE5B4B"}
-    case "fire":
-      return {tipo: "fuego", color: "E95436"}
-    case "flying":
-      return {tipo: "volador", color: "A4C7ED"}
-    case "ghost":
-      return {tipo: "fantasma", color: "6A476F"}
-    case "grass":
-      return {tipo: "planta", color: "8DC266"}
-    case "ground":
-      return {tipo: "tierra", color: "CFB262"}
-    case "ice":
-      return {tipo: "hielo", color: "93D5F5"}
-    case "normal":
-      return {tipo: "normal", color: "B8B9AB"}
-    case "poison":
-      return {tipo: "veneno", color: "A15B97"}
-    case "psychic":
-      return {tipo: "psíquico", color: "EC6391"}
-    case "rock":
-      return {tipo: "roca", color: "B7A86D"}
-    case "steel":
-      return {tipo: "acero", color: "A4A3B3"}
-    case "water":
-      return {tipo: "agua", color: "578AC9"}
-    default:
-      break;
-  }
+async function crearCard(pokemon) {
+
+  const datosPokemon = await getPokemonData(pokemon.url);
+
+
+  //INICIALIZO LA CARD DEL POKEMON
+  const card = document.createElement('li');
+  card.setAttribute("class","card-pokemon");
+
+  //PARTE SUPERIOR DE LA CARD DEL POKEMON
+  const cardSuperior = document.createElement('div');
+  cardSuperior.setAttribute("class","card-pokemon-superior");
+
+  cardSuperior.appendChild(maquetarIDPokedex(datosPokemon));
+  cardSuperior.appendChild(maquetarFavoritoCard(datosPokemon));
+  card.appendChild(cardSuperior);
+
+  //PARTE MEDIA DE LA CARD DEL POKEMON
+  const cardMedia = document.createElement('div');
+  cardMedia.appendChild(maquetarImagenPokedex(datosPokemon));
+
+  cardMedia.appendChild(await maquetarNombrePokedex(datosPokemon));
+
+
+  cardMedia.appendChild(await maquetarTiposPokedex(datosPokemon));
+
+
+  cardMedia.appendChild(await maquetarHabilidadesPokedex(datosPokemon));
+
+  cardMedia.setAttribute("class","card-pokemon-media");
+  card.appendChild(cardMedia);
+
+
+  //PARTE INFERIOR DE LA CARD DEL POKEMON
+  const cardInferior = document.createElement('div');
+  cardInferior.setAttribute("class","card-pokemon-inferior");
+  cardInferior.appendChild(maquetarEstadisticasPokedex(datosPokemon));
+
+  
+  card.appendChild(cardInferior);
+  console.log(pokemon.name);
+
+  return card;
 }
 
 function traducirEstadisticasEspanol(estadistica) {
@@ -211,6 +219,7 @@ function formularioBuscar() {
       ? resultadoBusqueda = pokedexCompleta.filter( pokemon => pokemon.name.includes(valorBuscado.toLowerCase().trim()) )
       : resultadoBusqueda = pokedexCompleta.filter( pokemon => pokemon.id === parseInt(valorBuscado.trim()) );
     refrescarPokedex(resultadoBusqueda);
+    maquetarPaginacion(resultadoBusqueda);
   }
 
   //CREAR FORMULARIO BUSQUEDA
@@ -239,7 +248,7 @@ function formularioBuscar() {
   
   
   //--------------------------EVENTO KEYUP PARA MOSTRAR RESULTADOS MIENTRAS SE ESCRIBE--------------------------
-  inputBuscarNombre.addEventListener('keyup',(e) => {
+  inputBuscarNombre.addEventListener('change',(e) => {
     e.preventDefault();
     e.target.value === "" ? refrescarPokedex(pokedexCompleta): buscador(e.target.value, "nombre");
   });
@@ -262,7 +271,9 @@ function formularioBuscar() {
           //-------------------- revisar que no se refresque cuando ya esta vació y se sigue presionando la tecla de borrar
   inputBuscarID.addEventListener('keyup',(e) => {
     e.preventDefault();
-    e.target.value === "" ? refrescarPokedex(pokedexCompleta): buscador(e.target.value, "id");
+    // ------ ACA NECESITO REHACER EL BUSCADOR Y QUE SE HAGA POR QUERY REQUEST (EJ. https://pokeapi.co/api/v2/pokemon/ditto)
+    // ---------- Y HACER FUNCIONAR EL DEBOUNCER JUNTO CON EL STOP DE LAS PROMESAS
+    e.target.value === "" ? refrescarPokedex(pokedexCompleta): debouncer(buscador(e.target.value, "id"),500); 
   });
 
   //--------------------------REFRESCO CON EL EVENTO INPUT, SI SE EXCEDE DE LA CANTIDAD MAXIMA DE LA POKEDEX MUESTRA UN MESAJE--------------------------
@@ -302,20 +313,31 @@ function maquetarImagenPokedex(pokemon) {
 
   //CREO UNA ETIQUETA <img> PARA LA IMAGEN DEL POKEMON
   const imagen = document.createElement('img');
-  imagen.setAttribute("src",`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${pokemon.id}.png`);
-  imagen.setAttribute("class","img-pokemon");
+  imagen.setAttribute("src",`${pokemon.sprites.other["official-artwork"].front_default ? pokemon.sprites.other["official-artwork"].front_default : "../assets/images/missing.png"}`);
+  pokemon.sprites.other["official-artwork"].front_default === null ? imagen.setAttribute("class","w-32 h-32 my-auto") : imagen.setAttribute("class","img-pokemon");
+  
+  
   divImagen.appendChild(imagen);
 
   return divImagen;
 }
 
-function maquetarNombrePokedex(pokemon) {
-  //CREO UNA ETIQUETA <div> PARA QUE MUESTRE EL NOMBRE DEL POKEMON
-  const pNombre = document.createElement('p');
-  pNombre.setAttribute("class", "nombre-pokemon");
-  pNombre.textContent = capitalize(pokemon.name);
+async function maquetarNombrePokedex(pokemon) {
+  try {
 
-  return pNombre
+    //CREO UNA ETIQUETA <div> PARA QUE MUESTRE EL NOMBRE DEL POKEMON
+    const pNombre = document.createElement('p');
+    pNombre.setAttribute("class", "nombre-pokemon");
+    pNombre.textContent = await traducirNombre(pokemon.species.url);
+    return pNombre
+    
+  } catch (error) {
+    
+    console.log('Error al maquetar nombre');
+    console.error(error);
+
+  }
+
 }
 
 function maquetarIDPokedex(pokemon) {
@@ -328,29 +350,26 @@ function maquetarIDPokedex(pokemon) {
 }
 
 function maquetarFavoritoCard(pokemon) {
-  const $divFavoritoCard = document.createElement('div');
-  $divFavoritoCard.setAttribute("class","");
-  
   const $botonFavoritoCard = document.createElement('input');
+  //$botonFavoritoCard.setAttribute("type","image");
   $botonFavoritoCard.setAttribute("type","image");
-  $botonFavoritoCard.setAttribute("class","boton-favorito");
-  
-  !listaFavoritos.some(x => x.id == pokemon.id)
-    ? $botonFavoritoCard.src = "../assets/images/heart.svg"
-    : $botonFavoritoCard.src = "../assets/images/heart-fill.svg"
+  $botonFavoritoCard.setAttribute("class",`boton-favorito boton-favorito-${pokemon.id}`);
 
-  
+  !listaFavoritos.some(x => x.id == pokemon.id)
+    ? $botonFavoritoCard.src = "./assets/images/heart.svg"
+    : $botonFavoritoCard.src = "./assets/images/heart-fill.svg"
+
+
 
   $botonFavoritoCard.addEventListener("click", (e) => {
-    e.preventDefault();
-    //console.log(e.target.getAttribute("src"))
+    console.log("hola click")
     
-    if (e.target.getAttribute("src") === "../assets/images/heart.svg") {
+    if (e.target.getAttribute("src") === "./assets/images/heart.svg") {
       agregarFavorito(pokemon);
-      e.target.setAttribute("src","../assets/images/heart-fill.svg");
+      e.target.setAttribute("src","./assets/images/heart-fill.svg");
     } else {
       eliminarFavorito(pokemon);
-      e.target.setAttribute("src","../assets/images/heart.svg");
+      e.target.setAttribute("src","./assets/images/heart.svg");
     }
   });
   
@@ -359,10 +378,11 @@ function maquetarFavoritoCard(pokemon) {
 }
 
 function agregarFavorito(pokemon) {
-  if (! listaFavoritos.some(x => x.id === pokemon.id)) {
-    listaFavoritos.push(pokemon);
+  if (! listaFavoritos.some(x => x.id === pokemon.id) || listaFavoritos.length === 0) {
+    const fav = {id: pokemon.id, name: pokemon.name};
+    listaFavoritos.push(fav);
     localStorage.setItem('listaFavoritos', JSON.stringify(listaFavoritos));
-    console.log(listaFavoritos);
+    //console.log(listaFavoritos);
   }
 
 }
@@ -374,53 +394,80 @@ function eliminarFavorito(pokemon) {
   localStorage.setItem('listaFavoritos', JSON.stringify(listaFavoritos));
 
   
-  console.log(resultado);
-  console.log(listaFavoritos);
+  //console.log(resultado);
+  //console.log(listaFavoritos);
 
 }
 
-function maquetarTiposPokedex(pokemon) {
-  //CREO UNA ETIQUETA <div> PARA QUE MUESTRE LOS TIPOS DEL POKEMON
-  const divTipos = document.createElement('div');
-  divTipos.setAttribute("class", "tipos-container");
-
-
-  for (const type of pokemon.types) {
-    //CREO UNA ETIQUETA <p> PARA EL MUESTRE EL TIPO1 DEL POKEMON
-    const tipo = document.createElement('div');
-    tipo.setAttribute("class", `tipo-pokemon tipo-pokemon-${type}`);
+async function maquetarTiposPokedex(pokemon) {
+  try {
     
-    const tipoTexto = document.createElement('p');
-    tipoTexto.textContent = capitalize(getTipos(type).tipo.toUpperCase());
-    tipoTexto.setAttribute("class", "tipo-pokemon-texto");
-    tipo.appendChild(tipoTexto);
-
-    divTipos.appendChild(tipo);
-  }
+    //CREO UNA ETIQUETA <div> PARA QUE MUESTRE LOS TIPOS DEL POKEMON
+    const divTipos = document.createElement('div');
+    divTipos.setAttribute("class", "tipos-container");
   
-  return divTipos;
+  
+    for (const type of pokemon.types) {
+      //CREO UNA ETIQUETA <p> PARA EL MUESTRE EL TIPO1 DEL POKEMON
+      const tipo = document.createElement('div');
+      tipo.setAttribute("class", `tipo-pokemon tipo-pokemon-${type.type.name}`);
+      
+      const tipoTexto = document.createElement('p');
+      //tipoTexto.textContent = capitalize(getTipos(type).tipo.toUpperCase());
+      tipoTexto.textContent = await traducirTipo(type.type.url);
+      tipoTexto.setAttribute("class", "tipo-pokemon-texto");
+      tipo.appendChild(tipoTexto);
+  
+      divTipos.appendChild(tipo);
+    }
+    
+    return divTipos;
+    
+  } catch (error) {
+    
+    console.log('Error al maquetar tipos');
+    console.error(error);
+
+  }
+
 }
 
-function maquetarHabilidadesPokedex(pokemon) {
-  //CREO UNA ETIQUETA <div> PARA QUE MUESTRE LAS HABILIDADES DEL POKEMON
-  const ulHabilidades = document.createElement('ul');
-  ulHabilidades.setAttribute("class", "habilidades-container");
-  for (const h of pokemon.abilities) {
-    const liHabilidad = document.createElement('li');
+async function maquetarHabilidadesPokedex(pokemon) {
+  try {
 
-    //CREO UNA ETIQUETA <label> PARA LAS HABILIDADES DEL POKEMON
-    const labelHabilidad = document.createElement('label');
-    labelHabilidad.textContent = `Habilidad ${indiceDeHabilidad(pokemon.abilities, h)}: `;
-    liHabilidad.appendChild(labelHabilidad);
+    //CREO UNA ETIQUETA <div> PARA QUE MUESTRE LAS HABILIDADES DEL POKEMON
+    const ulHabilidades = document.createElement('ul');
+    ulHabilidades.setAttribute("class", "habilidades-container");
+
+    for (const h of pokemon.abilities) {
+
+      const liHabilidad = document.createElement('li');
+
+      //CREO UNA ETIQUETA <label> PARA LAS HABILIDADES DEL POKEMON
+      const labelHabilidad = document.createElement('label');
+      h.is_hidden
+        ?labelHabilidad.textContent = `Habilidad oculta: `
+        :labelHabilidad.textContent = `Habilidad ${h.slot}: `;
+      liHabilidad.appendChild(labelHabilidad);
+      
+      //CREO UNA ETIQUETA <p> PARA EL MOSTRAR LAS HABILIDADES DEL POKEMON
+      const habilidad = document.createElement('p');
+      habilidad.textContent = await traducirHabilidad(h.ability.url);
+      liHabilidad.appendChild(habilidad);
+  
+      ulHabilidades.appendChild(liHabilidad);
+
+    }
+
+    return ulHabilidades;
     
-    //CREO UNA ETIQUETA <p> PARA EL MOSTRAR LAS HABILIDADES DEL POKEMON
-    const habilidad = document.createElement('p');
-    habilidad.textContent = traducirHabilidad(h);
-    liHabilidad.appendChild(habilidad);
+  } catch (error) {
+    
+    console.log('Error al maquetar habilidades del pokemon');
+    console.error(error);
 
-    ulHabilidades.appendChild(liHabilidad);
   }
-  return ulHabilidades;
+
 }
 
 function maquetarEstadisticasPokedex(pokemon) {
@@ -437,7 +484,7 @@ function maquetarEstadisticasPokedex(pokemon) {
 
     //CREO UNA ETIQUETA <label> PARA CADA ESTADISTICA DEL POKEMON
     const labelEstadistica = document.createElement('label');
-    labelEstadistica.textContent = `${capitalize(traducirEstadisticasEspanol(stat.name))}:`;
+    labelEstadistica.textContent = `${traducirEstadisticasEspanol(stat.stat.name)}:`;
     divEstadistica.appendChild(labelEstadistica);
     
     //CREO UNA ETIQUETA <p> PARA EL MOSTRAR CADA ESTADISTICA DEL POKEMON
@@ -451,7 +498,211 @@ function maquetarEstadisticasPokedex(pokemon) {
   return divRespuesta;
 }
 
-function traducirHabilidad(ability) {
-  const resultado =  habilidadesEN_ES.find( h => h.name === ability).nombre;
-  return resultado;
+async function traducirHabilidad(abilityURL) {
+  try {
+    const response = await fetch(abilityURL);
+    const data = await response.json();
+    //console.log(data.names[5].name);
+    return data.names[5].name;
+
+  } catch (error) {
+
+    console.log('No se pudo traducir la habilidad');
+    console.error(error);
+
+  }
+}
+
+async function traducirTipo(typeURL) {
+  try {
+    const response = await fetch(typeURL);
+    const data = await response.json();
+    //console.log(data);
+    //console.log(data.names[5].name);
+    return data.names[5].name;
+
+  } catch (error) {
+
+    console.log('No se pudo traducir el tipo');
+    console.error(error);
+
+  }
+
+}
+
+async function traducirNombre(nameURL) {
+  try {
+    const response = await fetch(nameURL);
+    const data = await response.json()
+    //console.log(data.names[6].name);
+    return data.names[6].name;
+
+  } catch (error) {
+
+    console.log('No se pudo traducir nombre del pokemon');
+    console.error(error);
+
+  }
+
+}
+
+async function getPokemonQuery(query) {
+  try {
+    const endpoint = "pokemon"
+    const response = await fetch(`${url}/${endpoint}${query}`);
+    const data = await response.json();
+    //console.log(data.results);
+    return data.results;
+
+
+  } catch (error) {
+
+    console.log('No se pudo obtener los datos de la pokedex de la API');
+    //console.error(error);
+
+  }
+}
+
+async function getPokemonData(url) {
+  try {
+    const response = await fetch(`${url}`);
+    const data = await response.json();
+    //console.log(data);
+    return data;
+
+  } catch (error) {
+
+    console.log('No se pudo obtener los datos del pokemon de la API');
+    console.error(error);
+
+  }
+}
+
+function debouncer(funcion, delay=500) {
+  setTimeout(() => {
+    funcion(...argumentos);
+  }, delay)
+}
+
+function maquetarPaginacion(listado) {
+  //-------------------------SELECCIONO LAS DOS BARRAS DE PAGINACION (ARRIBA Y ABAJO) PARA MANEJARLAS A LA VEZ
+  const $divPaginacion = document.querySelectorAll('.paginacion');
+  const cantidad = 20;
+  
+  for (const $element of $divPaginacion) {
+    $element.innerHTML = "";
+    const $ul = document.createElement('ul');
+    $ul.setAttribute('class', 'flex flex-row py-8 font-medium');
+    $element.appendChild($ul);
+
+    const $btnPrev = document.createElement('button');
+    $btnPrev.setAttribute('class', 'btn-prev h-10 px-5 text-red-600 transition-colors duration-150 bg-white border border-red-600 border-r-0 rounded-l-lg focus:shadow-outline hover:bg-red-200 hidden');
+    $btnPrev.textContent = 'Prev';
+    $ul.appendChild($btnPrev);
+    
+    
+    const $liPaginas = document.createElement('li');
+    $liPaginas.setAttribute('class', 'li-paginas h-10 flex flex-row items-center gap-2 px-5 text-red-600 transition-colors duration-150 bg-white rounded-l-lg border border-x-1 border-red-600 focus:shadow-outline hover:bg-red-200');
+    $ul.appendChild($liPaginas);
+
+    const $textoPagina = document.createElement('p');
+    $textoPagina.setAttribute('class', 'align-baseline');
+    $textoPagina.textContent = `Página `;
+    $liPaginas.appendChild($textoPagina);
+
+    const $inputPaginado = document.createElement('input');
+    $inputPaginado.setAttribute('class', 'input-paginado h-8 w-10 leading-none pt-0 text-center px-1 rounded border border-2 border-red-300');
+    $inputPaginado.value = 1
+
+    $inputPaginado.addEventListener('focus', ()  => {
+      document.querySelectorAll('.input-paginado').forEach(input => input.value = "");
+    });
+
+
+
+    $inputPaginado.addEventListener('keypress', e  => {
+      const patron = /[0-9]/;
+      
+      if (!patron.test(e.key)) {
+        if (e.key !== 'Enter')
+        e.preventDefault();
+      }
+    });
+
+    $inputPaginado.addEventListener('keyup', e  => {
+      if (e.target.value > Math.ceil(listado.length/cantidad)){
+        e.target.value = Math.ceil(listado.length/cantidad);
+      }
+
+      if (e.target.value < 1){
+        e.target.value = 1;
+      }
+    });
+
+    $liPaginas.appendChild($inputPaginado);
+
+    const $textoTotalPaginas = document.createElement('p');
+    $textoTotalPaginas.setAttribute('class', 'align-baseline');
+    $textoTotalPaginas.textContent = `de ${Math.ceil(listado.length/cantidad)}`;
+    $liPaginas.appendChild($textoTotalPaginas);
+
+  
+
+
+    const $btnNext = document.createElement('button');
+    $btnNext.setAttribute('class', 'btn-next h-10 px-5 text-red-600 transition-colors duration-150 bg-white border border-red-600 border-l-0 rounded-r-lg focus:shadow-outline hover:bg-red-200');
+    $btnNext.textContent = 'Next';
+    $ul.appendChild($btnNext);
+
+    $btnNext.addEventListener('click', async e => {
+      await refrescarPokedex(await getPokemonQuery(`?offset=${document.querySelector('.input-paginado').value * cantidad}&limit=${cantidad}`));
+      document.querySelectorAll('.input-paginado').forEach(element => {
+        element.value ++;
+        document.querySelectorAll('.btn-prev').forEach(element => element.classList.remove('hidden'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.remove('rounded-l-lg'));
+        if (parseInt(element.value) > Math.ceil(listado.length/cantidad)){
+          document.querySelectorAll('.btn-next').forEach(element => element.classList.add('hidden','rounded-r-lg'));
+          document.querySelectorAll('.li-paginas').forEach(element => element.classList.add('rounded-r-lg'));
+        }
+      });
+    });
+    
+
+    $btnPrev.addEventListener('click', async e => {
+      document.querySelectorAll('.input-paginado').forEach(element => {
+        element.value --;
+        document.querySelectorAll('.btn-next').forEach(element => element.classList.remove('hidden'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.remove('rounded-r-lg'));
+        if (parseInt(element.value) === 1){
+          document.querySelectorAll('.btn-prev').forEach(element => element.classList.add('hidden','rounded-l-lg'));
+          document.querySelectorAll('.li-paginas').forEach(element => element.classList.add('rounded-l-lg'));
+        }
+      });
+      await refrescarPokedex(await getPokemonQuery(`?offset=${(document.querySelector('.input-paginado').value - 1) * cantidad}&limit=${cantidad}`));
+    });
+
+    $inputPaginado.addEventListener('change', async e  => {
+      document.querySelectorAll('.input-paginado').forEach(input => input.value = e.target.value);
+
+      await refrescarPokedex(await getPokemonQuery(`?offset=${(e.target.value - 1) * cantidad}&limit=${cantidad}`));
+
+      if (parseInt(e.target.value) === 1) {
+        document.querySelectorAll('.btn-prev').forEach(element => element.classList.add('hidden','rounded-l-lg'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.add('rounded-l-lg'));
+      } else {
+        document.querySelectorAll('.btn-prev').forEach(element => element.classList.remove('hidden'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.remove('rounded-l-lg'));
+      }
+
+      if (parseInt(e.target.value) >= Math.ceil(listado.length/cantidad)) {
+        document.querySelectorAll('.btn-next').forEach(element => element.classList.add('hidden','rounded-r-lg'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.add('rounded-r-lg'));
+      } else {
+        document.querySelectorAll('.btn-next').forEach(element => element.classList.remove('hidden'));
+        document.querySelectorAll('.li-paginas').forEach(element => element.classList.remove('rounded-r-lg'));
+      }
+
+    });
+
+  }
 }

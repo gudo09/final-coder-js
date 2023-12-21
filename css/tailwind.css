@@ -1,3 +1,5 @@
+
+
 @import "tailwindcss/base";
 @import "tailwindcss/components";
 @import "tailwindcss/utilities";
@@ -7,15 +9,14 @@ body{
   @apply bg-red-300;
 }
 
-.pokedex-container{
-  @apply flex justify-center;
-  .pokedex{
-    @apply grid grid-cols-[repeat(auto-fit,_minmax(24rem,_1fr))]
-    gap-6 
-    justify-items-center
-    w-11/12;
-  }
+.pokedex{
+  @apply grid grid-cols-[repeat(auto-fit,_minmax(20rem,_1fr))]
+  container
+  gap-6 
+  justify-items-center
+  mx-auto;
 }
+
 
 .mensaje-sin-resultados{
   @apply text-center text-white font-extrabold text-xl
@@ -26,40 +27,47 @@ body{
 
 .card-pokemon{
   @apply flex flex-col
-  justify-between
   text-lg text-white
-  p-6 h-[50rem] w-[25rem]
+  p-4 h-[42rem] w-[20rem]
   bg-red-700
   rounded
   shadow-lg shadow-black;
 
   &-superior {
-    @apply flex justify-between;
+    @apply flex justify-between items-start;
 
     .id-pokemon{
-      @apply font-extrabold text-2xl drop-shadow-lg;
+      @apply font-extrabold text-xl drop-shadow-lg;
     }
 
     .boton-favorito{
-      @apply bg-white aspect-square w-12 p-2 rounded-full justify-self-end;
+      @apply bg-white aspect-square w-10 p-2 rounded-full justify-self-end;
+      &:hover{
+        cursor : pointer;
+      }
     }
   }
 
   &-media{
+    .fondo-pokebola{
+      @apply flex justify-center w-48 mx-auto
+      bg-[url('../assets/images/pokeball.png')] bg-no-repeat bg-center bg-cover 
+      rounded-full 
+      aspect-square shadow-xl shadow-red-950 
+      border-gray-900 border-4
+      overflow-visible;
+    
+      img-pokemon{
+        @apply aspect-square;
+      }
+    }
+
     .nombre-pokemon{
       @apply font-extrabold text-center text-3xl py-2;
     }
 
-    .fondo-pokebola{
-      @apply flex justify-center bg-[url('../assets/images/pokeball.png')] bg-no-repeat bg-center bg-cover rounded-full aspect-square shadow-2xl mx-16 my-8 shadow-red-950 border-gray-900 border-4;
-    
-      img-pokemon{
-        @apply scale-[1.8] aspect-square my-7 p-2 drop-shadow-lg;
-      }
-    }
-
     .tipos-container{
-      @apply flex gap-x-2 mt-4 justify-center;
+      @apply flex gap-x-2 mt-2 justify-center;
       
       .tipo-pokemon{
         @apply rounded-full py-0.5 px-2 w-28 border-4 border-[rgba(27,_23,_23,_50%)];
@@ -90,10 +98,10 @@ body{
     }
 
     .habilidades-container{
-      @apply pt-4;
+      @apply mt-2;
       
       li{
-        @apply flex flex-row gap-x-2 pt-2;
+        @apply flex flex-row gap-x-2 mt-2;
 
         label{
           @apply font-bold drop-shadow-lg;
@@ -104,6 +112,7 @@ body{
   }
 
   &-inferior{
+    @apply mt-auto container w-10/12 mx-auto;
     ul{
       h3{
         @apply font-bold text-center underline;
@@ -136,12 +145,7 @@ body{
   }
 }
 
-
-button {
-  @apply font-bold py-2 px-4 rounded bg-blue-500 text-white;
-  &:hover {
-    @apply bg-blue-800;
-  }
+.modal-loading{
+  @apply fixed z-50 top-0 left-0 w-full h-full  justify-center items-center bg-black bg-opacity-50 ;
 }
-
 

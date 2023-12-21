@@ -4,20 +4,23 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
-  <script src="https://unpkg.com/scrollreveal"></script>
+  <!-- <script src="https://unpkg.com/scrollreveal"></script> -->
   <link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
   
   <div id="tools">
+    
+  </div>
+  <div class="modal-loading flex hidden" id="modal">
 
   </div>
-  
+  <div class="paginacion flex justify-center"></div>
   <p id="sinResultados" class="mensaje-sin-resultados hidden"></p>
-  <div class="pokedex-container">
-    <ul  id="pokedex" class= "pokedex">
-    </ul>
-  </div>
+  <ul id="pokedex" class= "pokedex"></ul>
+  <div class="paginacion flex justify-center"></div>
+
+
   <script src="./scripts/main.js" type="module"></script>
 </body>
 </html>

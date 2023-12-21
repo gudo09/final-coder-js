@@ -6,7 +6,9 @@ module.exports = {
     "./styles/**/*.css"
   ],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {}
+    },
   },
   plugins: [],
 }
