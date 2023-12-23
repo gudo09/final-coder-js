@@ -132,9 +132,8 @@ body{
   }
 }
 
-
 .form-buscar{
-  @apply w-3/12 bg-red-700 p-4 border-solid grid grid-cols-4 gap-y-4;
+  @apply bg-red-700 p-4 mr-auto border-solid grid grid-cols-4 gap-y-4 ;
   
   label{
     @apply text-white font-bold col-span-2;
@@ -142,8 +141,13 @@ body{
 
   input{
     @apply px-2 py-1 col-span-2 rounded-md;
+
+    &.checkbox-favoritos{
+      @apply col-span-1 w-6 h-6;
+    }
   }
 }
+
 
 .modal-loading{
   @apply fixed z-50 top-0 left-0 w-full h-full  justify-center items-center bg-black bg-opacity-50 ;
